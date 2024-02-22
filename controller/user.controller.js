@@ -50,3 +50,11 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ message: "Something went wrong", error });
   }
 };
+
+export const userLogOut = async (req, res) => {
+  try {
+    res.clearCookie("token").status(200).json({ message: "Logged Out" });
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong", error });
+  }
+};
