@@ -49,32 +49,76 @@ export const userLogin = async (req, res) => {
   }
   try {
     // const validUser = await User.findOne({ email });
-    const validUser = await User.findOne({ email }).select("-password");
+    const validUser = await User.findOne({ email });
     if (!validUser) {
+      //   console.log("user not found", validUser);
       return res.status(400).json({ message: "No User Found!" });
     }
     // compare with password
-    const matchPassword = await bycryptjs.compare(password, validUser.password);
+    // console.log(validUser);
+    // console.log(password);
+    // console.log(validUser.password);
+    const matchPassword = bycryptjs.compareSync(password, validUser.password);
+    // console.log(matchPassword);
     if (!matchPassword) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
     // create a token
+
     const token = jwt.sign(
       {
         id: validUser._id,
       },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "30d",
-      }
+      process.env.JWT_SECRET
     );
+    // console.log(token);
     res
       .status(200)
       .cookie("token", token, {
-        httponly: true,
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
       })
       .json(validUser);
   } catch (error) {
-    return res.status(500).json({ message: "Login failed" });
+    // console.log(error);
+    return res.status(500).json({ message: "Login failed", error });
+  }
+};
+
+export const googleLogIn = async (req, res) => {
+  const { email, userName, profilePicture } = req.body;
+  console.log("email", req.body);
+  const validUser = await User.findOne({ email });
+  if (validUser) {
+    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
+    res
+      .status(200)
+      .cookie("token", token, {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+      })
+      .json(validUser);
+  } else {
+    // create a user and password for latter edit
+    const password = "elll";
+    const hashedPassword = await bycryptjs.hash(password, 8);
+    const newUser = await User.create({
+      userName: userName,
+      email,
+      password: hashedPassword,
+      profilePicture,
+    });
+    await newUser.save();
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+    res
+      .status(201)
+      .cookie("token", token, {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+      })
+      .json(newUser);
   }
 };
