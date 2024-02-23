@@ -10,13 +10,17 @@ const postSchema = new mongoose.Schema(
       type: String,
       require: true,
     },
-    description: {
+    content: {
       type: String,
       required: true,
     },
     category: {
       type: String,
       default: "uncategorized",
+    },
+    access: {
+      type: String,
+      default: "Public",
     },
     blogImage: {
       type: String,
