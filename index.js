@@ -8,6 +8,7 @@ import cors from "cors";
 // import userRoutes from "./routes/auth.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import postRoutes from "./routes/post.routes.js";
 const app = express();
 app.use(cookieParser());
 const port = process.env.PORT || 5000;
@@ -38,6 +39,7 @@ mongoose
 
 app.use("/api/users", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/post/", postRoutes);
 app.listen(port, () => {
   console.log("my server is running");
 });

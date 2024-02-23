@@ -68,6 +68,7 @@ export const userLogin = async (req, res) => {
     const token = jwt.sign(
       {
         id: validUser._id,
+        isAdmin: validUser.isAdmin,
       },
       process.env.JWT_SECRET
     );
@@ -91,7 +92,10 @@ export const googleLogIn = async (req, res) => {
   console.log("email", req.body);
   const validUser = await User.findOne({ email });
   if (validUser) {
-    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
+    const token = jwt.sign(
+      { id: validUser._id, isAdmin: validUser.isAdmin },
+      process.env.JWT_SECRET
+    );
     res
       .status(200)
       .cookie("token", token, {
@@ -111,7 +115,10 @@ export const googleLogIn = async (req, res) => {
       profilePicture,
     });
     await newUser.save();
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+    const token = jwt.sign(
+      { id: newUser._id, isAdmin: newUser.isAdmin },
+      process.env.JWT_SECRET
+    );
     res
       .status(201)
       .cookie("token", token, {
