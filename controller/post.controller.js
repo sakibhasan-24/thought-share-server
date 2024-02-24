@@ -28,7 +28,7 @@ export const createPost = async (req, res) => {
 export const getPosts = async (req, res) => {
   try {
     const startIndex = parseInt(req.query.startIndex) || 0;
-    const limit = parseInt(req.query.limit) || 2;
+    const limit = parseInt(req.query.limit) || 9;
     const sort = req.query.order === "asc" ? 1 : -1;
     const posts = await Post.find({
       ...(req.query.category && {
@@ -70,6 +70,31 @@ export const getPosts = async (req, res) => {
       totalPosts,
       lastMonthPosts,
     });
+  } catch (error) {
+    res.status(401).json({ message: "something went wrong", success: false });
+  }
+};
+
+export const updatePost = async (req, res) => {
+  if (!req.user.isAdmin || req.params.userId !== req.user.id) {
+    return res
+      .status(401)
+      .json({ message: "you can update only your post", success: false });
+  }
+  try {
+    const updatedPost = await Post.findByIdAndUpdate(
+      req.params.postId,
+      {
+        $set: {
+          title: req.body.title,
+          content: req.body.content,
+          category: req.body.category,
+          blogImage: req.body.blogImage,
+        },
+      },
+      { new: true }
+    );
+    res.status(200).json({ message: "post updated", success: true });
   } catch (error) {
     res.status(401).json({ message: "something went wrong", success: false });
   }
