@@ -38,7 +38,7 @@ export const updateUser = async (req, res) => {
 };
 
 export const deleteUser = async (req, res) => {
-  if (req.params.id !== req.user.id) {
+  if (!req.user.isAdmin && req.params.id !== req.user.id) {
     return res
       .status(403)
       .json({ message: "You can delete only your account!" });
@@ -54,6 +54,40 @@ export const deleteUser = async (req, res) => {
 export const userLogOut = async (req, res) => {
   try {
     res.clearCookie("token").status(200).json({ message: "Logged Out" });
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong", error });
+  }
+};
+
+export const getUsers = async (req, res) => {
+  if (!req.user.isAdmin) {
+    return res
+      .status(403)
+      .json({ message: "You are not allowed to perform this action" });
+  }
+  try {
+    const startIndex = parseInt(req.query.startIndex) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    const sort = req.query.sort === "asc" ? 1 : -1;
+    const users = await User.find()
+      .sort({ createdAt: sort })
+      .skip(startIndex)
+      .limit(limit);
+    const totalUsers = await User.countDocuments();
+    const now = new Date();
+    const oneMonthAgo = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      now.getDate()
+    );
+    const lastMonthUsers = await User.countDocuments({
+      createdAt: { $gte: oneMonthAgo },
+    });
+    res.status(200).json({
+      users,
+      totalUsers,
+      lastMonthUsers,
+    });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong", error });
   }
