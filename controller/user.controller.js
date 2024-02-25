@@ -92,3 +92,22 @@ export const getUsers = async (req, res) => {
     res.status(500).json({ message: "Something went wrong", error });
   }
 };
+
+export const getUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    // console.log(req.params.userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User not found", success: false });
+    }
+
+    const { pasword, ...rest } = user._doc;
+    return res.status(200).json({ success: true, user: rest });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Something went wrong", error, success: false });
+  }
+};
