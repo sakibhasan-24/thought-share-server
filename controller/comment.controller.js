@@ -113,3 +113,32 @@ export const editComment = async (req, res) => {
       .json({ message: "something went wrong", success: false });
   }
 };
+
+export const deleteComment = async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+    if (!comment) {
+      return res
+        .status(404)
+        .json({ message: "comment is not found", success: false });
+    }
+    if (req.user.id !== comment.userId && !req.user.isAdmin) {
+      //   console.log(req.params.commentId, comment.userId);
+      return res
+        .status(401)
+        .json({ message: "you can only delete your comment", success: false });
+    }
+    const deletedComment = await Comment.findByIdAndDelete(
+      req.params.commentId
+    );
+    return res.status(200).json({
+      success: true,
+      message: "delete successfully",
+      deletedComment,
+    });
+  } catch (error) {
+    return res
+      .status(404)
+      .json({ message: "something went wrong", success: false });
+  }
+};
