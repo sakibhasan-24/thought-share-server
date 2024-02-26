@@ -76,3 +76,40 @@ export const likeAction = async (req, res) => {
       .json({ message: "something went wrong", success: false });
   }
 };
+
+export const editComment = async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+    console.log(comment);
+    if (!comment) {
+      return res
+        .status(401)
+        .json({ message: "comment is not found", success: false });
+    }
+    if (comment?.userId !== req.user.id) {
+      return res.status(401).json({
+        message: "you can only edit your comment",
+        success: false,
+      });
+    }
+    const updatedComment = await Comment.findByIdAndUpdate(
+      req.params.commentId,
+      {
+        $set: {
+          comment: req.body.comment,
+        },
+      },
+      { new: true }
+    );
+    return res.status(200).json({
+      message: "successfully update",
+      success: true,
+      updatedComment,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "something went wrong", success: false });
+  }
+};
