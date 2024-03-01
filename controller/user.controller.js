@@ -1,7 +1,7 @@
 import bcryptjs from "bcryptjs";
 import User from "../model/user.model.js";
 export const updateUser = async (req, res) => {
-  console.log(req.user.id, req.params.id);
+  // console.log(req.user.id, req.params.id);
   if (req.user.id !== req.params.id) {
     return res
       .status(403)
@@ -109,5 +109,74 @@ export const getUser = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Something went wrong", error, success: false });
+  }
+};
+
+export const userRequest = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User not found", success: false });
+    }
+    if (req.user.isAdmin) {
+      return res
+        .status(403)
+        .json({ message: "Admin can't request", success: false });
+    }
+    if (user.isAdmin === false) {
+      user.adminRequest = true;
+      await user.save();
+      return res
+        .status(200)
+        .json({ message: "Request sent", success: true, user });
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Something went wrong", error, success: false });
+  }
+};
+
+export const handleRequest = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res
+        .status(403)
+        .json({ message: "Only Admin can handle", success: false });
+    }
+    console.log(req.body);
+    const { action, userId } = req.body;
+    const user = await User.findById(userId);
+    if (action === "approve") {
+      user.isAdmin = true;
+      user.adminRequest = false;
+    }
+    if (action === "reject") {
+      user.adminRequest = false;
+    }
+    await user.save();
+    return res
+      .status(200)
+      .json({ message: "Request handled", success: true, user });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Something went wrong", error, success: false });
+  }
+};
+
+export const getRequestUser = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized", success: false });
+    }
+    const users = await User.find({ adminRequest: true });
+    return res.status(200).json({ message: "success", success: true, users });
+  } catch (error) {
+    return res
+      .status(401)
+      .json({ message: "something wen wrong", success: false });
   }
 };

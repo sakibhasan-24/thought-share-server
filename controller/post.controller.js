@@ -45,6 +45,7 @@ export const getPosts = async (req, res) => {
         $or: [
           { title: { $regex: req.query.searchTerm, $options: "i" } },
           { content: { $regex: req.query.searchTerm, $options: "i" } },
+          { category: { $regex: req.query.searchTerm, $options: "i" } },
         ],
       }),
     })

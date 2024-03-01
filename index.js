@@ -20,7 +20,12 @@ app.use(
     // origin: "http://localhost:5173 https://api.imgbb.com",
     // origin: ["http://localhost:5173"],
     // origin: true,
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "https://thought-share-blog.firebaseapp.com/",
+
+      "https://thought-share-blog.web.app",
+    ],
     credentials: true,
   })
 );

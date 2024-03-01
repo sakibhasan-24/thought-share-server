@@ -142,3 +142,57 @@ export const deleteComment = async (req, res) => {
       .json({ message: "something went wrong", success: false });
   }
 };
+export const getAllComments = async (req, res) => {
+  try {
+    const startIndex = parseInt(req.query.startIndex) || 0;
+    const limit = parseInt(req.query.limit) || 100;
+    const sort = req.query.sort === "desc" ? -1 : 1;
+
+    const now = new Date();
+    const oneMonthAgo = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      now.getDate()
+    );
+
+    if (!req.user.isAdmin) {
+      const comments = await Comment.find({ userId: req.user.id })
+        .sort({ createdAt: sort })
+        .skip(startIndex)
+        .limit(limit);
+      const totalComments = await Comment.countDocuments();
+
+      const lastMonthComments = await Comment.countDocuments({
+        createdAt: { $gte: oneMonthAgo },
+      });
+      return res.status(200).json({
+        success: true,
+        message: "send ",
+        comments,
+        totalComments,
+        lastMonthComments,
+      });
+    } else {
+      const comments = await Comment.find()
+
+        .sort({ updatedAt: sort })
+        .skip(startIndex)
+        .limit(limit);
+      const totalComments = await Comment.countDocuments();
+      // console.log(comments);
+      const lastMonthComments = await Comment.countDocuments({
+        createdAt: { $gte: oneMonthAgo },
+      });
+
+      return res.status(200).json({
+        message: "admin comments",
+        success: true,
+        comments,
+        lastMonthComments,
+        totalComments,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "something went wrong", success: false });
+  }
+};
